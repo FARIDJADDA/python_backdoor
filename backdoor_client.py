@@ -1,4 +1,3 @@
-
 import socket
 import time
 import subprocess
@@ -31,7 +30,17 @@ while True:
    
     if not response or len(response) == 0:
         response = " "
-       
+        
+# Gestion des commandes trop longues: 
+# HEADER 13 octets -> longueur data
+# DATA (longueur) octets 
+
+# ex : HEADER 0000000002024
+#      DATA (2024) octets
+    header = str(len(response.encode())).zfill(13)
+    print(f'HEADER : {header}')
+    s.sendall(header.encode())
     s.sendall(response.encode())
+
 
 s.close()
