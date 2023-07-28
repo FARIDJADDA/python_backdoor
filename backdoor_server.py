@@ -17,13 +17,13 @@ MAX_DATA_SIZE = 1024
 def socket_receive_all_data(socket_p, data_len):
     current_data_len = 0
     total_data = None
-    print(f"Socket_receive_all_data len:{data_len}")
+    #print(f"Socket_receive_all_data len:{data_len}")
     while current_data_len < data_len:
         chunk_len = data_len - current_data_len
         if chunk_len > MAX_DATA_SIZE:
             chunk_len = MAX_DATA_SIZE
         data = socket_p.recv(MAX_DATA_SIZE)
-        print(f"Len: {len(data)}")
+        #print(f"Len: {len(data)}")
         if not data:
             return None
         if not total_data:
@@ -31,7 +31,7 @@ def socket_receive_all_data(socket_p, data_len):
         else: 
             total_data += data
         current_data_len += len(data)
-        print(f"Total len: {current_data_len} / {data_len}")
+        #print(f"Total len: {current_data_len} / {data_len}")
     return total_data
 
 def socket_send_command_and_receive_all_data(socket_p, command):
@@ -65,7 +65,7 @@ while True:
     
     if not data_receive:
         break
-    print(f"data_receive longueur : {len(data_receive)}")
+    #print(f"data_receive longueur : {len(data_receive)}")
     print(data_receive.decode())
     
 s.close()

