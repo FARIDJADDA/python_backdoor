@@ -38,7 +38,6 @@ def socket_send_command_and_receive_all_data(socket_p, command):
     if not command: # if command == "" 
         return None
     socket_p.sendall(command.encode())
-    
     header_data = socket_receive_all_data(socket_p, 13)
     len_data = int(header_data.decode())
     
@@ -55,18 +54,34 @@ print(f"Wait connexion on {HOST_IP}, port {HOST_PORT}...")
 connection_socket, client_address = s.accept()
 print(f"Connexion ON : {client_address}")
 
+dl_filename = None
+
 while True:
     data_details = socket_send_command_and_receive_all_data(connection_socket, "infos")
     if not data_details:
         break
     command = input(client_address[0]+":"+str(client_address[1]) + " " + data_details.decode() + " > ")
-    
+        
+    commande_split = command.split(" ") 
+    if len(commande_split) == 2 and commande_split[0] == "dl":
+        dl_filename = commande_split[1]
     data_receive = socket_send_command_and_receive_all_data(connection_socket, command)
     
     if not data_receive:
         break
+    
+    if dl_filename:
+        if len(data_receive) == 1 and data_receive == b" ":
+            print(f"ERROR: error file {dl_filename} does not exist")
+        else:
+            f = open(dl_filename, "wb")
+            f.write(data_receive)
+            f.close()
+            print("File", dl_filename, "download")
+        dl_filename = None  
+    else:
     #print(f"data_receive longueur : {len(data_receive)}")
-    print(data_receive.decode())
+        print(data_receive.decode())
     
 s.close()
 connection_socket.close()

